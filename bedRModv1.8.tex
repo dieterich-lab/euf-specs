@@ -1,0 +1,370 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{calc}
+\usepackage{caption}
+\usepackage[flushmargin,hang]{footmisc}
+\usepackage{float}
+\usepackage{microtype}
+\usepackage{newverbs}
+\usepackage{tablefootnote}
+\usepackage{tabularx}
+\usepackage{todonotes}
+\usepackage[hyperfootnotes=false]{hyperref} % doesn't work in tabulars as currently set
+\usepackage[nohyperlinks]{acronym}
+\usepackage{footnotehyper}
+\usepackage[strict]{changepage}
+\usepackage[binary-units=true]{siunitx}
+\usepackage{enumitem}
+\usepackage{stackengine}
+
+
+\input{bedRModv1.8.ver}
+
+\hypersetup{colorlinks=true,
+  linkcolor=blue,
+  filecolor=magenta,
+  urlcolor=blue,
+  pdfinfo={githash=\commitdesc}}
+
+\definecolor{cverbbg}{gray}{0.93}
+
+\title{The \acf{bedRMod} format}
+\author{Transregio 319 RMaP}
+\date{\headdate}
+
+\setlength{\emergencystretch}{\hsize}
+\setlength{\footnotemargin}{1em}
+
+\floatplacement{table}{htbp}
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\setcounter{dbltopnumber}{2}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.7}
+
+\interfootnotelinepenalty=1000000
+\makesavenoteenv{tabularx}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\providecommand*{\Ac}[1]{\ac{#1}} % work around outdated acronym.sty packages
+\newcommand*{\acrodefused}[2]{\acrodef{#1}{#2}\acused{#1}}
+
+\frenchspacing
+
+% eliminate passive voice warnings
+% chktex-file -3
+
+\begin{document}
+
+\maketitle
+
+\begin{small}
+\noindent
+The master version of this document can be found at \url{https://github.com/dieterich-lab/euf-specs}.
+This printing is version~\commitdesc\ from that repository, last modified on the date shown above.
+\end{small}
+
+\acused{ASCII}
+
+\section{Specification}
+
+\Ac{bedRMod} is a tab-delimited file format, compatible with the \acf{BED} format.\footnote{SAM/BAM and related specifications, \url{http://samtools.github.io/hts-specs}} Metadata are in~\textbf{header line}s, which describe metainformation about the source of the data. Data are in~\textbf{data line}s, which describe \emph{RNA modification}s by physical start and end position on a linear~\textbf{chromosome}. The metadata must be consistent for all~\textbf{data line}s, \textit{i.e.} one \ac{bedRMod} file contains only one organism, one modification (RNA) type \textit{etc.} The file extension for the \ac{bedRMod} format is~\texttt{.bedrmod}.
+
+\subsection{Scope}
+
+This specification is a compatible variation of the \ac{BED} description for~\textbf{data line}s. The content of this document is directly inspired from the 
+official \ac{BED} specifications. Only the most important or less obvious concepts are reiterated in this document. For general information, refer to the official \ac{BED} specifications.
+
+\subsection{Typographic conventions}
+
+This document uses the official \ac{BED} typographic conventions~(\autoref{tab:typographic-conventions}).
+
+\begin{savenotes}
+  \begin{table}
+    \begin{tabularx}{\textwidth}{r L L}
+      \toprule
+      Style & Meaning & Examples \\
+      \midrule
+      Bold & Terms defined in subsections~\ref{sec:terms}--\ref{sec:lines} & \textbf{chromosome}{\quad}\textbf{file} \\
+      Sans serif & Names of~\textbf{field}s & \textsf{chrom}{\quad}\textsf{chromStart}{\quad}\textsf{chromEnd} \\
+      Fixed-width & Literals or \ac{regex}es\footnote{POSIX/IEEE~1003.1--2017 Extended Regular Expressions, for the ``C'' locale.
+                    \emph{IEEE Standard for Information Technology---Portable Operating System Interface~(POSIX) Base Specifications}, IEEE~1003.1--2017, 2017} & \texttt{.bedrmod}{\quad}\texttt{grep}{\quad}\texttt{[[:alnum:]]+}{\quad}\texttt{ATCG} \\
+      \bottomrule
+    \end{tabularx}
+    \caption{\textbf{Typographic conventions.}}\label{tab:typographic-conventions}
+  \end{table}
+\end{savenotes}
+
+\subsection{Terminology and concepts}\label{sec:terms}
+\begin{description}
+\item[0-based, half-open coordinate system:]
+  A coordinate system where the first base starts at position~0, and the start of the interval is included but the end is not.
+  For example, for a sequence of bases~\texttt{ACTGCG}, the bases given by the interval~[2,~4) are~\texttt{TG}. % chktex 9
+
+\item[\acs{bedRMod} field:]
+  One of the 11~standard~\textbf{field}s defined in this specification.
+  All~\textbf{\acs{bedRMod} field}s are mandatory.
+
+\item[comment line:]
+  A~\textbf{line} that starts with~\texttt{\#} with no horizontal whitespace beforehand. \textbf{Comment line}s at the start of 
+  the~\textbf{file} are~\textbf{header line}s defined in this specification.
+
+\item[custom field:]
+  A~\textbf{field} defined by the~\textbf{file}~creator.
+  \textbf{Custom field}s occur in each~\textbf{line} after any~\textbf{\acs{bedRMod} field}s.
+
+\item[data line:]
+  A~\textbf{line} that contains~\textbf{feature}~data.
+
+\item[feature:]
+  A linear region of a~\textbf{chromosome} with a reported RNA modification, typically a single-base modification, but can include a context.
+
+\item[field:]
+  Data stored as non-tab text.
+  All~\textbf{field}s are 7-bit US \ac{ASCII} printable characters\footnote{Characters in the range \texttt{{\textbackslash}x20} to \texttt{{\textbackslash}x7e}, therefore not including any control characters}.
+
+\item[field separator:]
+  One or more horizontal whitespace characters (space or tab).
+  The~\textbf{field separator} must match the \ac{regex}~\texttt{[ {\textbackslash}t]+}.
+  This specification strongly recommends using tab as~\textbf{field separator} throughout the \textbf{file}.
+
+\item[file:]
+  Sequence of one or more~\textbf{data line}s with a~\textbf{header}.
+
+\item[header:]
+  Mandatory~\textbf{header line}s, followed by optional~\textbf{comment line}s, at the start of the~\textbf{file}.
+
+\item[header field:]
+  A mandatory tag describing one of the \textbf{header line}s that starts with~\texttt{\#} and separated from its assigned value with an~\texttt{=} sign. 
+  
+\item[header line:]
+  A~\textbf{line} that contains~\textbf{header field}s.
+  
+\item[line:]
+  String terminated by a~\textbf{line separator}, in one of the following classes.
+  Either a~\textbf{data line} or a~\textbf{comment line}, \textit{cf.}~\autoref{sec:lines}.
+
+\item[line separator:]
+  Either carriage return~(\texttt{{\textbackslash}r}, equivalent to \texttt{{\textbackslash}x0d}), newline~(\texttt{{\textbackslash}n}, equivalent to \texttt{{\textbackslash}x0a}), or carriage return followed by newline~(\texttt{{\textbackslash}r{\textbackslash}n}, equivalent to \texttt{{\textbackslash}x0d{\textbackslash}x0a}).
+  The same~\textbf{line separator} must be used throughout the~\textbf{file}.
+\end{description}
+
+\subsection{Lines}\label{sec:lines}
+
+\subsubsection{Data lines}
+
+\textbf{Data line}s contain~\textbf{feature}~data (RNA modification).
+A~\textbf{data line} is composed of~\textbf{field}s separated by~\textbf{field separator}s.
+
+\subsubsection{Comment lines}
+
+\textbf{Comment line}s provide no~\textbf{feature} data. They start with~\texttt{\#} with no horizontal whitespace beforehand.
+\textbf{Comment line}s at the beginning of the file are treated as~\textbf{header line}s, and must conform to~\textbf{header} specifications, \textit{cf.}~\autoref{sec:header}. A~\texttt{\#} appearing anywhere else in a~\textbf{data line} is treated as~\textbf{feature} data, not a comment.
+
+
+\subsection{Header specification}\label{sec:header}
+
+The~\textbf{header} contains metainformation about the source of the data. Each~\textbf{header line} starts with a~\texttt{\#} and contains a
+mandatory \textbf{header field}, separated with its assigned value with an~\texttt{=} sign, \textit{e.g.} 
+\textsf{\#fileformat=}bedRModv1.8~(\autoref{tab:header}). All \textbf{header field}s are mandatory. The first six \textbf{header field}s must be assigned a
+value, and the value must generally follow a controlled vocabulary; the remaining~\textbf{header field}s are free text, and 
+can be left without a value, although it is strongly advised to provide a value for each one. Additional~\textbf{line}s starting with~\texttt{\#} are treated as~\textbf{comment line}s.
+
+A \ac{bedRMod}~\textbf{header} describes information  for one organism, one assembly and annotation, and one modification (RNA) type, hence a \ac{bedRMod}~\textbf{file} contains~\textbf{data lines} for one organism, one assembly and annotation, and one modification (RNA) type. A \ac{bedRMod}~\textbf{file} can 
+contain~\textbf{data lines} for different RNA modifications, \textit{e.g.} m6A and m5C, \textit{cf.}~\autoref{sec:data}.
+
+
+\begin{savenotes}
+  \begin{table}
+    \begin{tabularx}{\textwidth}{X p{.5\textwidth} p{.15\textwidth}}
+      \toprule
+      Header Field & Brief description & Value required \\
+      \midrule
+      \textsf{fileformat} & Fileformat and version \textit{e.g.} bedRModv1.8 & Yes \\
+      \textsf{organism} & NCBI Taxonomic identifier\footnote{NCBI Taxonomy: a comprehensive update on curation, resources and tools, \url{10.1093/database/baaa062}} & Yes \\
+      \textsf{modificationn\textunderscore type} & RNA & Yes \\
+      \textsf{assembly} & Genome or transcriptome assembly \textit{e.g.} GRCh38 & Yes \\
+      \textsf{annotation\textunderscore source} & Annotation source \textit{e.g.} Ensembl & Yes \\
+      \textsf{annotation\textunderscore version} & Annotation version \textit{e.g.} 110 & Yes \\
+      \textsf{sequencing\textunderscore platform} & Sequencing platform \textit{e.g.} Illumina NovaSeq 6000, or ONT MinION & No \\
+      \textsf{basecalling} & Basecalling model information where relevant & No \\
+      \textsf{bioinformatics\textunderscore workflow} & Reference to bioinformatics workflow \textit{e.g.} GitHub, or information relevant to score, coverage, or frequency calculation & No \\
+      \textsf{experiment} & Information about experimental protocol, design, \textit{etc.} or link to \textit{e.g.} openBIS & No \\
+      \textsf{external\textunderscore source} & Databank:ID of data \textit{e.g.} GEO:GSEXXXXXX & No \\
+      \bottomrule
+    \end{tabularx}
+    \caption{\textbf{Header Fields.}}\label{tab:header}
+  \end{table}
+\end{savenotes}
+ 
+
+\subsection{Data specification}\label{sec:data}
+
+Each~\textbf{data line} contains 11~\textbf{\acs{bedRMod} field}s delimited by a (tab) \textbf{field separator}.
+All~\textbf{fields} are mandatory~(\autoref{tab:fields}).
+Additional optional~\textbf{field}s can be added, following the first 11~\textbf{field}s, according to the \acs{BED} specifications, but 
+it is not recommended to use \acs{bedRMod} with exactly 12~\textbf{field}s, \textit{cf.}~\autoref{sec:custom_fields}.
+
+\begin{savenotes}
+  \begin{table}
+    \begin{adjustwidth}{-0.5in}{-0.5in}
+      \begin{tabularx}{\linewidth}{r l l l L}
+        \toprule
+        Col & \acs{bedRMod} Field & Type & Regex or range & Brief description \\
+        \midrule
+        1
+        & \textsf{chrom}
+        & String
+        & \texttt{[[:alnum:]\_]\{1,255\}}\footnote{\texttt{[[:alnum:]\_]} is equivalent to the \ac{regex} \texttt{[A-Za-z0-9\_]}. % chktex 8
+        It is also equivalent to the Perl extension \texttt{[[:word:]]}}
+        & \textbf{Chromosome} name \\
+        2 & \textsf{chromStart} & Int & $[0, 2^{64}-1]$ & \textbf{Feature} start position \\
+        3 & \textsf{chromEnd} & Int & $[0, 2^{64} -1]$ & \textbf{Feature} end position \\
+        4 
+        & \textsf{name} 
+        & String 
+        & \texttt{[{\textbackslash}x20-{\textbackslash}x7e]\{1,255\}} 
+        & MODOMICS \emph{short name} \\
+        5 & \textsf{score} & Int & $[0, 1000]$ & Modification confidence \\
+        6 & \textsf{strand} & String & \texttt{[-+.]} & \textbf{Feature} strand \\
+        7 & \textsf{thickStart} & Int & $[0, 2^{64}-1]$ & Thick start position, typically same as \textsf{chromStart} \\
+        8 & \textsf{thickEnd} & Int & $[0, 2^{64}-1]$ & Thick end position, typically same as \textsf{chromEnd} \\
+        9 & \textsf{itemRgb} & Int,Int,Int & \texttt{(}$[0, 255], [0,255], [0,255]$\texttt{) | 0} & Display color \\ % chktex 9
+        10 & \textsf{coverage} & Int &  $[0, 2^{64}-1]$ & Coverage, or number of reads \\
+        11 & \textsf{frequency} & Int & $(0, 100]$ & Percentage of modified reads \\
+        \bottomrule
+      \end{tabularx}
+    \end{adjustwidth}
+    \caption{\textbf{\acs{bedRMod} Fields.}}\label{tab:fields}
+  \end{table}
+\end{savenotes}
+
+In a \ac{bedRMod}~\textbf{file}, each~\textbf{data line} must have the same number of~\textbf{field}s.
+The positions in \textbf{\acs{bedRMod} field}s are all described in the~\textbf{0-based, half-open coordinate system}, exactly as 
+described in the official \ac{BED} specifications.
+
+\subsection{Coordinates}
+Refer to the official \ac{BED} specifications.
+
+\subsection{Simple attributes}
+\begin{enumerate}
+\item \textsf{name}: String that describes the~\textbf{feature}, \textit{i.e.} the modification. \textbf{Name} must describe 
+the modification using the \emph{short name} using the MODOMICS nomenclature\footnote{MODOMICS, \url{https://www.genesilico.pl/modomics/modifications}}.
+
+\item \textsf{score}: Integer between~0 and~1000, inclusive, representing the confidence in calling this modification.\footnote{We recommend using $round(-log10(p value))$ to represent score, where p value is calculated from a statistical test. For future versions, we should harmonize this definition with 
+the ML:B:C,scaled-probabilities (SAMtags), but this also depends on how aligners include this information in the alignment files.} A value of 0 indicates missing data or uninformative~\textsf{score}. A visual representation of the \ac{bedRMod} format may shade~\textbf{feature}s differently depending on their \textsf{score}.
+
+\item \textsf{coverage}: Integer between~0 and the maximum size of an unsigned 64-bit integer, representing the number of reads covering the~\textbf{feature}, \textit{i.e.} typically the valid coverage (modified and unmodified reads) at the reported modification position. A value of~0 indicates missing data.\footnote{This allows to include data where \textit{e.g.} modifications are inferred using a given computational workflow that does provide stoichiometry, but not coverage, \textit{i.e.} the number of reads at this position is not available.}
+
+\item \textsf{frequency}: Integer between~1 and~100, representing the percentage of modified reads for this~\textbf{feature}. Modification frequency, or stoichiometry, is required. The \ac{bedRMod} format is a format to store modification data, hence unmodified bases must not be recorded.  
+\end{enumerate}
+
+\subsection{Display attributes}
+\begin{enumerate}
+  \setcounter{enumi}{4}
+
+\item \textsf{thickStart}: Included for compatibility, typically same as \textsf{chromStart}.
+
+\item \textsf{thickEnd}: Included for compatibility, typically same as \textsf{chromEnd}.
+
+\item \textsf{itemRgb}: Included for compatibility, typically \texttt{0,0,0}.
+
+\end{enumerate}
+
+\subsection{Custom fields}\label{sec:custom_fields}
+
+\textbf{Custom field}s defined by the \textbf{file}~creator may contain any printable 7-bit US \ac{ASCII} character (which includes spaces, but excludes tabs, newlines, and other control characters), as defined by the \ac{BED} format definitions.
+
+A \acs{bedRMod} \textbf{file} with exactly 12~\textbf{field}s, \textit{i.e.} containing one additional optional~\textbf{field}, may be implicitely 
+assumed to be a BED12~\textbf{file} by certain software and genome browsers, which can result in unexpected behaviour! 
+
+\section{Examples}
+
+\subsection[title]{Example bedRMod file from the \acs{bedRMod} and related specifications\footnote{\url{https://github.com/dieterich-lab/euf-specs/examples/bedrmod/example.bedrmod}}}\label{sec:example-bedrmod}
+
+\begin{verbatim}
+#fileformat=bedRModv1.8
+#organism=9606
+#modification_type=RNA
+#assembly=GRCh38
+#annotation_source=Ensembl
+#annotation_version=110
+#sequencing_platform=Illumina NovaSeq 6000
+#basecalling=
+#bioinformatics_workflow=workflow:https://github.com/XXX
+#experiment=https://doi.org/10.XXX
+#external_source=SRA:PRJNAXXXXXX,GEO:GSEXXXXXX
+#chrom	chromStart	chromEnd	name	score	strand	thickStart	thickEnd	itemRgb	coverage	frequency
+1	1391918	1391919	m5C	0	-	1391918	1391919	0,0,0	42	42
+2	8878712	8878713	m5C	0	-	8878712	8878713	0,0,0	318	44
+3	11980442	11980443	m6A	0	+	11980442	11980443	0,0,0	111	56
+4	17054111	17054112	m5C	0	-	17054111	17054112	0,0,0	40	34
+5	23691799	23691800	m6A	0	+	23691799	23691800	0,0,0	352	27
+\end{verbatim}
+
+\section{Recommended practice for the \acs{bedRMod} format}
+
+\subsection{Mandatory \acs{bedRMod} header fields}
+These~\textbf{field}s are not free text, and must conform to a controlled vocabulary.
+\begin{itemize}
+\item \textsf{fileformat}: A valid version of this specification, including the format name, \textit{e.g.} bedRModv1.8. 
+
+\item \textsf{organism}: A valid NCBI Taxonomic identifier\footnote{NCBI Taxonomy: a comprehensive update on curation, resources and tools, \url{10.1093/database/baaa062}}, \textit{e.g.} 9606.
+
+\item \textsf{assembly}: The name of a valid assembly, \textit{e.g.} using the Ensembl terminology, GRCh38. 
+
+\item \textsf{annotation\textunderscore source}: The name of a valid annotation, \textit{e.g.} Ensembl. 
+
+\item \textsf{annotation\textunderscore version}: A valid version for the annotation source, \textit{e.g.} 110. 
+\end{itemize}
+
+\subsection{\acs{bedRMod} fields}
+\begin{itemize}
+\item \textsf{chrom}: The name of each~\textbf{chromosome} should match the names from a reference genome assembly, as given in the~\textbf{header}.
+  For example, if~\texttt{\#assembly=}GRCh38, then~\textbf{chromosome}s should be named~\texttt{1} to \texttt{22}, \texttt{X}, \texttt{Y}, and~\texttt{MT},
+  consistently through the~\textbf{file}.
+\end{itemize}
+
+\subsection{Whitespace}\label{sec:whitespace}
+We recommend that only a single tab~(\texttt{{\textbackslash}t}) be used as \textbf{field separator}, \textit{cf.} offical \ac{BED} specifications.
+
+\section{Information supplied out-of-band}
+
+A \ac{bedRMod} \textbf{file} contains 11 required~\textbf{field}s, any additional~\textbf{field}s may require information that must be supplied out-of-band.
+A common practice is to include a~\textbf{comment line} after the~\textbf{header} to describe the~\textbf{field}s used in the~\textbf{file}, \textit{cf.}~\autoref{sec:example-bedrmod}.
+
+The semantics of \textbf{field}s such as~\textsf{score},~\textsf{coverage}, and~\textsf{frequency} can be included in the~\textsf{header} using the
+\texttt{bioinformatics\textunderscore workflow} \textbf{header field}.
+
+\section{Acronyms}
+
+% using the optional argument to acronym to set the label width causes it to use the list environment instead of description, which means we can't set nosep easily
+\setlist[description]{labelwidth=\widthof{\textbf{\acs{bedRMod}}},nosep}
+\begin{acronym}
+  \acro{ASCII}{American Standard Code for Information Interchange}
+  \acro{BED}{Browser Extensible Data}
+  \acro{bedRMod}{Browser Extensible Data for RNA modification}
+  \acro{regex}{regular expression}
+\end{acronym}
+
+\section{Acknowledgments}
+
+We thank the \acf{bedRMod} format specification working group.
+
+\end{document}
+
+% chktex-file 17
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

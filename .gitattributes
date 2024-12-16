@@ -1,0 +1,2 @@
+# cf. https://github.com/samtools/hts-specs
+*.pdf	-text diff=pdf

@@ -22,9 +22,16 @@ GNUmakefile
 /diff/*.pdf
 /diff/*.tex
 /new/*.pdf
+
+# documentation
+.sass-cache/
 /.jekyll-cache
 /.jekyll-metadata
 /_site
+Gemfile
+Gemfile.lock
+.bundle/
+vendor/
 
 # local
 /local

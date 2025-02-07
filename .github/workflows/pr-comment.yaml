@@ -60,9 +60,9 @@ jobs:
 
       - name: Update preview ref
         env:
-          GIT_AUTHOR_NAME: hts-specs bot
-          GIT_COMMITTER_NAME: hts-specs bot
-          EMAIL: hts-specs-bot@broadinstitute.org
+          GIT_AUTHOR_NAME: euf-specs bot
+          GIT_COMMITTER_NAME: euf-specs bot
+          EMAIL: boileau@uni-heidelberg.de
         run: |
           git add -f $pdf_files
           git commit --allow-empty -m "PDFs for PR #$pr_number as of $head_sha"

@@ -1,6 +1,7 @@
 all: pdf
 
-PDFS =	bedRModv1.8.pdf
+PDFS =	bedRModv1.8.pdf \
+	bedRModv2.pdf
 
 pdf: $(PDFS:%=new/%)
 
@@ -8,6 +9,7 @@ pdf: $(PDFS:%=new/%)
 	cp $^ $@
 
 new/bedRModv1.8.pdf       diff/bedRModv1.8.pdf:       bedRModv1.8.tex       new/bedRModv1.8.ver
+new/bedRModv2.pdf       diff/bedRModv2.pdf:       bedRModv2.tex       new/bedRModv2.ver
 
 # Set LATEXMK to "scripts/rerun.sh new/$* $(PDFLATEX)" to use the previous
 # controller script, e.g., if your installation does not have latexmk.
@@ -22,6 +24,7 @@ new/%.pdf: %.tex | new
 	$(LATEXMK) --output-directory=new $<
 
 new/bedRModv1.8.pdf: LATEXMK_ENGINE = --lualatex
+new/bedRModv2.pdf: LATEXMK_ENGINE = --lualatex
 
 new/%.ver: %.tex | new
 	scripts/genversion.sh $^ > $@
@@ -39,6 +42,7 @@ diff/%.pdf: %.tex
 	BIBINPUTS=:.. TEXINPUTS=:..:../new latexdiff-vc $(LATEXDIFF_ENGINE) --pdf --dir diff --force --git --only-changes --graphics-markup=none --ignore-warnings --revision $(OLD) $(if $(NEW),--revision $(NEW)) $<
 
 diff/bedRModv1.8.pdf: LATEXDIFF_ENGINE = --config LATEX=lualatex
+diff/bedRModv2.pdf: LATEXDIFF_ENGINE = --config LATEX=lualatex
 
 show-styles:
 	@sed -n '/\\usepackage/s/.*{\(.*\)}$$/\1/p' *.tex | sort | uniq -c

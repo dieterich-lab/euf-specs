@@ -77,7 +77,7 @@ This printing is version~\commitdesc\ from that repository, last modified on the
 
 \section{Specification}
 
-\Ac{bedRMod} is a tab-delimited file format, compatible with the \acf{BED} format.\footnote{SAM/BAM and related specifications, \url{http://samtools.github.io/hts-specs}} Metadata are in~\textbf{header line}s, which describe metainformation about the source of the data. Data are in~\textbf{data line}s, which describe \emph{RNA modification}s by physical start and end position on a linear chromosome. The metadata must be consistent for all~\textbf{data line}s. The recommended file extension for the \ac{bedRMod} format is~\texttt{.bedrmod}.
+\Ac{bedRMod} is a tab-delimited~\textbf{file} format, compatible with the \acf{BED} format\footnote{SAM/BAM and related specifications, \url{http://samtools.github.io/hts-specs}}. Metadata are in~\textbf{header line}s, which describe metainformation about the source of the data. Data are in~\textbf{data line}s, which describe \emph{RNA modification}s, or sites of putative \emph{RNA modification}s, by physical start and end position on a linear chromosome. The metadata must be consistent for all~\textbf{data line}s. The~\textbf{file} extension for the \ac{bedRMod} format is~\texttt{.bedrmod},~\texttt{.bedmethyl}, or~\texttt{.bed}.
 
 \subsection{Scope}
 
@@ -126,7 +126,7 @@ This document uses the official \ac{BED} typographic conventions~(\autoref{tab:t
   A~\textbf{line} that contains~\textbf{feature}~data.
 
 \item[feature:]
-  A linear region of a chromosome with a reported RNA modification, typically a single-base modification, but can include a context.
+  A linear region of a chromosome reporting the presence or absence of a given RNA modification, supported by quantitative evidence, typically at single-base resolution, but can include a context.
 
 \item[field:]
   Data stored as non-tab text.
@@ -144,10 +144,10 @@ This document uses the official \ac{BED} typographic conventions~(\autoref{tab:t
   Mandatory~\textbf{header line}s, followed by optional~\textbf{comment line}s, at the start of the~\textbf{file}.
 
 \item[header field:]
-  A mandatory tag describing one of the~\textbf{header line}s that starts with~\texttt{\#} and separated from its assigned value with an~\texttt{=} sign. 
+  A mandatory~\emph{key=value} pair describing one of the~\textbf{header line}s. 
   
 \item[header line:]
-  A~\textbf{line} that contains a~\textbf{header field}.
+  A~\textbf{line} that starts with~\texttt{\#} with no horizontal whitespace beforehand, immediately followed by a~\textbf{header field}.
   
 \item[line:]
   String terminated by a~\textbf{line separator}, in one of the following classes.
@@ -168,19 +168,15 @@ A~\textbf{data line} is composed of~\textbf{field}s separated by~\textbf{field s
 \subsubsection{Comment lines}
 
 \textbf{Comment line}s provide no~\textbf{feature} data. They start with~\texttt{\#} with no horizontal whitespace beforehand.
-\textbf{Comment line}s at the beginning of the file are treated as~\textbf{header line}s, and must conform to~\textbf{header} specifications, \textit{cf.}~\autoref{sec:header}. A~\texttt{\#} appearing anywhere else in a~\textbf{data line} is treated as~\textbf{feature} data, not a comment.
+\textbf{Comment line}s at the beginning of the~\textbf{file} are treated as~\textbf{header line}s, and must conform to~\textbf{header} specifications, \textit{cf.}~\autoref{sec:header}. A~\texttt{\#} appearing anywhere else in a~\textbf{data line} is treated as~\textbf{feature} data, not a comment.
 
 
 \subsection{Header specification}\label{sec:header}
 
 The~\textbf{header} contains metainformation about the source of the data. Each~\textbf{header line} starts with a~\texttt{\#} and contains a
-mandatory~\textbf{header field}, separated with its assigned value with an~\texttt{=} sign, \textit{e.g.} 
-\textsf{\#fileformat=}bedRModv2~(\autoref{tab:header}). All~\textbf{header field}s are mandatory. The first seven~\textbf{header field}s must be assigned a
-value, and the value must generally follow a controlled vocabulary; the remaining~\textbf{header field}s are free text, and 
-can be left without a value, although it is strongly advised to provide a value for each one. Additional~\textbf{line}s starting with~\texttt{\#} are treated as~\textbf{comment line}s.
+mandatory~\textbf{header field} in the form of a~\emph{key=value} pair, \textit{e.g.}~\texttt{\#fileformat=bedRModv2}~(\autoref{tab:header}). All~\textbf{header field}s are mandatory. The first seven~\textbf{header field}s must be assigned a value, and the value must generally follow a controlled vocabulary; the remaining~\textbf{header field}s are free text, and can be left without a value, although it is strongly advised to provide a value for each one. Additional~\textbf{line}s starting with~\texttt{\#} are treated as~\textbf{comment line}s.
 
-A \ac{bedRMod}~\textbf{header} describes information  for one organism, one assembly and annotation, and one modification (RNA) type, hence a \ac{bedRMod}~\textbf{file} contains~\textbf{data lines} for one organism, one assembly and annotation, and one modification (RNA) type. A \ac{bedRMod}~\textbf{file} can 
-contain~\textbf{data lines} for different RNA modifications, \textit{e.g.} m6A and m5C, \textit{cf.}~\autoref{sec:data}.
+A \ac{bedRMod}~\textbf{header} describes information for one organism, one assembly and annotation, and one modification (RNA) type, hence a \ac{bedRMod}~\textbf{file} contains~\textbf{data lines} for one organism, one assembly and annotation, and one modification (RNA) type. A \ac{bedRMod}~\textbf{file} can contain~\textbf{data lines} for different RNA modifications, \textit{e.g.}~\texttt{m6A} and~\texttt{m5C}, \textit{cf.}~\autoref{sec:data}.
 
 
 \begin{savenotes}
@@ -189,18 +185,18 @@ contain~\textbf{data lines} for different RNA modifications, \textit{e.g.} m6A a
       \toprule
       Header Field & Brief description & Value required \\
       \midrule
-      \textsf{fileformat} & Fileformat and version \textit{e.g.} bedRModv2 & Yes \\
+      \textsf{fileformat} & Fileformat and version \textit{e.g.}~\texttt{bedRModv2} & Yes \\
       \textsf{organism} & NCBI Taxonomic identifier\footnote{NCBI Taxonomy: a comprehensive update on curation, resources and tools, \url{10.1093/database/baaa062}} & Yes \\
       \textsf{modification\textunderscore type} & RNA & Yes \\
-      \textsf{modification\textunderscore names} & name:MODOMICS \emph{short name} \textit{e.g.} 21891:m6A & Yes \\
-      \textsf{assembly} & Genome or transcriptome assembly \textit{e.g.} GRCh38 & Yes \\
-      \textsf{annotation\textunderscore source} & Annotation source \textit{e.g.} Ensembl & Yes \\
-      \textsf{annotation\textunderscore version} & Annotation version \textit{e.g.} 110 & Yes \\
-      \textsf{sequencing\textunderscore platform} & Sequencing platform \textit{e.g.} Illumina NovaSeq 6000, or ONT MinION & No \\
+      \textsf{modification\textunderscore names} & name:MODOMICS \emph{short name}:reference or unmodified base \textit{e.g.}~\texttt{21891:m6A:A} & Yes \\
+      \textsf{assembly} & Genome or transcriptome assembly \textit{e.g.}~\texttt{GRCh38} & Yes \\
+      \textsf{annotation\textunderscore source} & Annotation source \textit{e.g.}~\texttt{Ensembl} & Yes \\
+      \textsf{annotation\textunderscore version} & Annotation version \textit{e.g.}~\texttt{110} & Yes \\
+      \textsf{sequencing\textunderscore platform} & Sequencing platform \textit{e.g.}~\texttt{Illumina NovaSeq 6000}, or~\texttt{ONT MinION} & No \\
       \textsf{basecalling} & Basecalling model information where relevant & No \\
-      \textsf{bioinformatics\textunderscore workflow} & Reference to bioinformatics workflow \textit{e.g.} GitHub, or information relevant to score, coverage, or frequency calculation & No \\
-      \textsf{experiment} & Information about experimental protocol, design, \textit{etc.} or link to \textit{e.g.} openBIS & No \\
-      \textsf{external\textunderscore source} & Databank:ID of data \textit{e.g.} GEO:GSEXXXXXX & No \\
+      \textsf{bioinformatics\textunderscore workflow} & Link to bioinformatics workflow, program name, version, and/or call, or information relevant to score, coverage, or frequency calculation, \textit{etc.} & No \\
+      \textsf{experiment} & Information about experimental protocol and design, or link to \textit{e.g.} openBIS or openAIRE repository & No \\
+      \textsf{external\textunderscore source} & Databank:ID of data \textit{e.g.}~\texttt{GEO:GSEXXXXXX} & No \\
       \bottomrule
     \end{tabularx}
     \caption{\textbf{Header Fields.}}\label{tab:header}
@@ -211,7 +207,7 @@ contain~\textbf{data lines} for different RNA modifications, \textit{e.g.} m6A a
 \subsection{Data specification}\label{sec:data}
 
 Each~\textbf{data line} contains 11~\textbf{\acs{bedRMod} field}s delimited by a~\textbf{field separator} (tab).
-All~\textbf{fields} are mandatory~(\autoref{tab:fields}).
+All~\textbf{fields} are mandatory~(\autoref{tab:fields}). Missing data is not allowed.
 Additional optional~\textbf{field}s can be added, following the first 11~\textbf{field}s, according to the \acs{BED} specifications, but 
 it is not recommended to use \acs{bedRMod} with exactly 12~\textbf{field}s, \textit{cf.}~\autoref{sec:custom_fields}.
 
@@ -234,14 +230,14 @@ it is not recommended to use \acs{bedRMod} with exactly 12~\textbf{field}s, \tex
         & \textsf{name} 
         & String 
         & \texttt{[{\textbackslash}x20-{\textbackslash}x7e]\{1,255\}} 
-        & Modification name \\
+        & Modification name and additional attributes \\
         5 & \textsf{score} & String & \texttt{[{\textbackslash}x20-{\textbackslash}x7e]\{1,255\}} & Modification confidence \\
         6 & \textsf{strand} & String & \texttt{[-+.]} & \textbf{Feature} strand \\
         7 & \textsf{thickStart} & Int & $[0, 2^{64}-1]$ & Thick start position, typically same as~\textsf{chromStart} \\
         8 & \textsf{thickEnd} & Int & $[0, 2^{64}-1]$ & Thick end position, typically same as~\textsf{chromEnd} \\
         9 & \textsf{itemRgb} & Int,Int,Int & \texttt{(}$[0, 255], [0,255], [0,255]$\texttt{) | 0} & Display color \\ % chktex 9
-        10 & \textsf{coverage} & Int &  $[0, 2^{64}-1]$ & Coverage \\
-        11 & \textsf{frequency} & Float & $(0, 100]$ & Percentage of modification \\
+        10 & \textsf{coverage} & Int &  $(0, 2^{64}-1]$ & Coverage \\
+        11 & \textsf{frequency} & Float & $[0, 100]$ & Percentage of modification \\
         \bottomrule
       \end{tabularx}
     \end{adjustwidth}
@@ -259,13 +255,13 @@ Refer to the official \ac{BED} specifications.
 \subsection{Simple attributes}
 \begin{enumerate}
 \item \textsf{name}: String that describes the~\textbf{feature}, \textit{i.e.} the modification. \textsf{name} must describe 
-the modification using the \emph{short name} of the MODOMICS nomenclature\footnote{MODOMICS, \url{https://www.genesilico.pl/modomics/modifications}}, or the base modification code described in the SAMtags, or a numeric ChEBI code. The MODOMICS \emph{short name} corresponding to~\textsf{name} is always described in the~\textbf{header field}~\textsf{modification\textunderscore names}.
+the modification using the \emph{short name} of the MODOMICS nomenclature\footnote{MODOMICS, \url{https://www.genesilico.pl/modomics/modifications}}, or the base modification code described in the SAMtags\footnote{SAM tags, \url{https://samtools.github.io/hts-specs}}, or a numeric ChEBI code\footnote{Chemical Entities of Biological Interest, \url{https://www.ebi.ac.uk/chebi}}. The MODOMICS \emph{short name} corresponding to~\textsf{name} is always described in the~\textbf{header field}~\textsf{modification\textunderscore names}. Additional name attributes are allowed, and must be comma-separated \textit{e.g.}~\texttt{a,DRACH,2}.
 
-\item \textsf{score}: String representation of the confidence in calling this modification. A value of 0 indicates missing data or uninformative~\textsf{score}. Any measure of confidence is valid, but a \ac{bedRMod}~\textbf{file} with non-integer-like~\textsf{score} values outside the range $[0, 1000]$ may fail from being correctly displayed in a visual representation.
+\item \textsf{score}: String representation of the confidence in calling this modification. Any measure of confidence is valid, but a \ac{bedRMod}~\textbf{file} with non-integer-like~\textsf{score} values outside the range $[0, 1000]$ may fail from being correctly displayed in a visual representation\footnote{\textit{cf.} bedtools definition of score, \url{https://bedtools.readthedocs.io/en/latest/content/general-usage.html?highlight=bed\%20format}}.
 
-\item \textsf{coverage}: Integer between~0 and the maximum size of an unsigned 64-bit integer, representing the number of reads or the number of calls passing filters covering the~\textbf{feature}, \textit{i.e.} typically the valid coverage (modified and unmodified) at the reported modification position. A value of~0 indicates missing data.
+\item \textsf{coverage}: Integer between~0 and the maximum size of an unsigned 64-bit integer, excluding~0, representing the number of reads aligned at this position or the number of calls for this~\textbf{feature}.
 
-\item \textsf{frequency}: Float\footnote{Decimal string representation of 64-bit floating point number, IEEE Standard for Binary Floating-Point Arithmetic. IEEE 754–1985, 1985.} between~0 and~100, excluding~0, representing the modification frequency, or stoichiometry. This can be the percentage of modified reads, or the ratio of the number of calls passing filters that were classified as a residue with the base modification reported for this~\textbf{feature} to the valid coverage, multiplied by 100. Missing data is not allowed.
+\item \textsf{frequency}: Float\footnote{Decimal string representation of 64-bit floating point number, IEEE Standard for Binary Floating-Point Arithmetic. IEEE 754–1985, 1985.} between~0 and~100, including~0, representing the modification frequency, or stoichiometry. This can be the percentage of modified reads, or the ratio of the number of calls passing filters that were classified as a residue with the base modification reported for this~\textbf{feature} to the \emph{valid coverage}, multiplied by~100. See~\autoref{sec:fields} for an explanation of \emph{valid coverage}. A~\textsf{frequency} of~0 means that there is evidence that a given site is not modified, \textit{i.e.} the canonical/unmodified base is reported with a confidence quantified by~\textsf{score}~$>$0.
 \end{enumerate}
 
 \subsection{Display attributes}
@@ -295,7 +291,7 @@ assumed to be a~\textbf{BED12}~\textbf{file} by certain software and genome brow
 #fileformat=bedRModv2
 #organism=9606
 #modification_type=RNA
-#modification_names=20607:m5C,21891:m6A
+#modification_names=20607:m5C:C,21891:m6A:A
 #assembly=GRCh38
 #annotation_source=Ensembl
 #annotation_version=110
@@ -315,33 +311,49 @@ assumed to be a~\textbf{BED12}~\textbf{file} by certain software and genome brow
 \section{Recommended practice for the \acs{bedRMod} format}
 
 \subsection{\acs{bedRMod} extension}
-The file extension is~\texttt{.bedrmod} or~\texttt{.bed}. Since the \ac{BED} format prohibits~\textbf{BED11}, there should be little confusion in general, but when~\textbf{custom field}s are defined, it is recommended to use the~\texttt{.bedrmod} extension.
+The~\textbf{file} extension is~\texttt{.bedrmod},~\texttt{.bedmethyl}, or~\texttt{.bed}. Since the \ac{BED} format prohibits~\textbf{BED11}, there should be little confusion in general, but when~\textbf{custom field}s are defined, it is recommended to use the~\texttt{.bedrmod} or~\texttt{.bedmethyl} extension. \Ac{bedRMod} formalizes the ENCORE bedMethyl format\footnote{Description of bedMethyl file, \url{https://www.encodeproject.org/data-standards/wgbs}} for \emph{RNA modification}s.
 
 \subsection{Mandatory \acs{bedRMod} header fields}
-These~\textbf{field}s are not free text, and must conform to a controlled vocabulary.
+These~\textbf{header field}s are not free text, and must conform to a controlled vocabulary.
 \begin{itemize}
-\item \textsf{fileformat}: A valid version of this specification, including the format name, \textit{e.g.} bedRModv2. 
+\item \textsf{fileformat}: A valid version of this specification, including the format name, \textit{e.g.}~\texttt{bedRModv2}. 
 
-\item \textsf{modification\textunderscore type}: A valid RNA type. 
+\item \textsf{modification\textunderscore type}: A valid RNA type\footnote{For example RNA or mRNA, tRNA, or rRNA. A next version of this specification should prescribe a controlled vocabulary by providing a reference to an established RNA ontology.}.
 
-\item \textsf{modification\textunderscore names}: A comma-separated dictionary mapping in the form name:MODOMICS \emph{short name}, where name corresponds to the~\textsf{name}~\textbf{field} of a~\textbf{data line}, and MODOMICS \emph{short name} to the corresponding short name of the MODOMICS nomenclature\footnote{MODOMICS, \url{https://www.genesilico.pl/modomics/modifications}}. A value is also required when using MODOMICS \emph{short names}, \textit{e.g.} m6A:m6A. All modifications present in the~\textbf{file} must be included, in a comma-separated list of items.
+\item \textsf{modification\textunderscore names}: A comma-separated dictionary mapping in the form name:MODOMICS \emph{short name}:reference or unmodified base, where name corresponds to the~\textsf{name}~\textbf{field} of a~\textbf{data line}, MODOMICS \emph{short name} to the corresponding short name of the MODOMICS nomenclature, and reference or unmodified base is the unmodified base as reported by the sequencing instrument for the top strand, as described in the SAMtags, except that `N' is not allowed (since it can be used to match any base). A value is also required when using MODOMICS \emph{short names}, \textit{e.g.}~\texttt{m6A:m6A:A}. All modifications present in the~\textbf{file} must be included, in a comma-separated list of items.
 
-\item \textsf{organism}: A valid NCBI Taxonomic identifier\footnote{NCBI Taxonomy: a comprehensive update on curation, resources and tools, \url{10.1093/database/baaa062}}, \textit{e.g.} 9606.
+\item \textsf{organism}: A valid NCBI Taxonomic identifier, \textit{e.g.}~\texttt{9606}.
 
-\item \textsf{assembly}: The name of a valid assembly, \textit{e.g.} using the Ensembl terminology, GRCh38. 
+\item \textsf{assembly}: The name of a valid assembly, \textit{e.g.} using the Ensembl terminology,~\texttt{GRCh38}. 
 
-\item \textsf{annotation\textunderscore source}: The name of a valid annotation, \textit{e.g.} Ensembl. 
+\item \textsf{annotation\textunderscore source}: The name of a valid annotation, \textit{e.g.}~\texttt{Ensembl}. 
 
-\item \textsf{annotation\textunderscore version}: A valid version for the annotation source, \textit{e.g.} 110. 
+\item \textsf{annotation\textunderscore version}: A valid version for the annotation source, \textit{e.g.}~\texttt{110}. 
 \end{itemize}
 
-\subsection{\acs{bedRMod} fields}
+\subsection{\acs{bedRMod} header fields}
+These~\textbf{header field}s can be left without a value, but the key must always be present. The value is free text, although it is strongly recommended
+to reference established \textsf{sequencing\textunderscore platform}s, \textsf{basecalling} models, \textsf{bioinformatics\textunderscore workflow}s, or \textsf{external\textunderscore source}s using an exact terminology and/or recognized identifiers.  
+\begin{itemize}
+\item \textsf{sequencing\textunderscore platform}: Typically, the name of the sequencing instrument or device, including key specifications if relevant, \textit{e.g.}~\texttt{ONT MinION}.
+
+\item \textsf{basecalling}: Basecalling model such as name of versioned model, reference to published model, and/or additional details on training, \textit{e.g.}~\texttt{dna\textunderscore r9.4.1\textunderscore e8\textunderscore sup$@$v3.6}.
+
+\item \textsf{bioinformatics\textunderscore workflow}: Program name, version, and/or call used to generate the~\textbf{file}, or link to open source bioinformatics workflow, including version and/or any additional details to facilitate data lineage. The information should be sufficient to reproduce the content of the~\textbf{file}.
+
+\item \textsf{experiment}: Supplementary information about experimental protocol, design, or the content of the~\textbf{file} such as conditions used, number of replicates, \textit{etc.}, or link to an openAIRE repository.
+
+\item \textsf{external\textunderscore source}: A comma-separated list of sources of the form Databank:ID, \textit{e.g.}~~\texttt{GEO:GSEXXXXXX, Zenodo:10.XXX/zenodo.XXXXXXXX}. Free text is allowed, but this specification recommends using the format described here. Together with~\textsf{bioinformatics\textunderscore workflow}, this should allow to reproduce the content of the~\textbf{file}.
+\end{itemize}
+
+
+\subsection{\acs{bedRMod} fields}\label{sec:fields}
 \begin{itemize}
 \item \textsf{chrom}: The name of each chromosome should match the names from a reference genome assembly, as given in the~\textbf{header}.
-  For example, if~\texttt{\#assembly=}GRCh38, then chromosomes should be named~\texttt{1} to~\texttt{22}, \texttt{X}, \texttt{Y}, and~\texttt{MT},
+  For example, if~\texttt{\#assembly=GRCh38}, then chromosomes should be named~\texttt{1} to~\texttt{22}, \texttt{X}, \texttt{Y}, and~\texttt{MT},
   consistently through the~\textbf{file}.
 \item \textsf{name}: The MODOMICS \emph{short names} or the ChEBI codes should be used in preference to the base modification codes described in the SAMtags.
-\item \textsf{score}: The valid coverage or the equivalent of the~\textsf{coverage}~\textbf{field} should be used as a measure of confidence\footnote{\textit{cf.} \url{https://nanoporetech.github.io/modkit}}.
+\item \textsf{score}: The \emph{valid coverage} should be used as a measure of confidence. This can be \textit{e.g.} the number of calls passing filters (classified as modified and unmodified) at the reported modification position\footnote{\textit{cf.} \url{https://nanoporetech.github.io/modkit}}, or the number or reads remaining after filtering and used to infer the modificaton status. If \emph{valid coverage} is not available, then~\textsf{coverage} can be used as a measure of confidence.
 \end{itemize}
 
 \subsection{Whitespace}\label{sec:whitespace}
@@ -362,12 +374,14 @@ The semantics of~\textbf{field}s such as~\textsf{score},~\textsf{coverage}, and~
   \acro{ASCII}{American Standard Code for Information Interchange}
   \acro{BED}{Browser Extensible Data}
   \acro{bedRMod}{Browser Extensible Data for RNA modification}
+  \acro{ChEBI}{Chemical Entities of Biological Interest}
+  \acro{NCBI}{National Center for Biotechnology Information}
   \acro{regex}{regular expression}
 \end{acronym}
 
 \section{Acknowledgments}
 
-We thank the \acf{bedRMod} format specification working group.
+We thank the \acf{bedRMod} format specification working group and the Modkit developers.
 
 \end{document}
 

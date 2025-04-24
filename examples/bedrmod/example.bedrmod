@@ -1,7 +1,7 @@
 #fileformat=bedRModv2
 #organism=9606
 #modification_type=RNA
-#modification_names=20607:m5C,21891:m6A
+#modification_names=20607:m5C:C,21891:m6A:A
 #assembly=GRCh38
 #annotation_source=Ensembl
 #annotation_version=93

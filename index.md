@@ -8,13 +8,11 @@ title: EU format specifications
 ---
 
 
-The bedRMod format, similar to the [ENCODE bedMethyl](https://www.encodeproject.org/data-standards/wgbs) or the [extended bedMethyl](https://nanoporetech.github.io/modkit) format proposed by Oxford Nanopre Technologies, aims to formalize the representation of RNA modifications.
-
-The bedRMod format is compatible with the BED (Browser Extensible Data) format, and most of the specifications are directly derived from the offical 
+The bedRMod format formalizes the [ENCODE bedMethyl](https://www.encodeproject.org/data-standards/wgbs) format to represent RNA modifications. It is compatible with the BED (Browser Extensible Data) format, and most of the specifications are directly derived from the offical 
 BED specifications, available under the [SAM/BAM and related specifications](http://samtools.github.io/hts-specs).
 
 
 Specifications:
 
 - [bedRModv1.8](bedRModv1.8.pdf)
-
+- [bedRModv2](bedRModv2.pdf)

@@ -1,10 +1,7 @@
 bedRMod and related specifications
 ==================================
 
-The bedRMod format originated in the [Transregio 319 RMaP](https://www.trr319-rmap.de) to support the [Human RNome Project](https://humanrnomeproject.org), and is used as the main data format in the [Sci-ModoM](https://scimodom.dieterichlab.org/) database. 
-
-The bedRMod format, similar to the [ENCODE bedMethyl](https://www.encodeproject.org/data-standards/wgbs) or the [extended bedMethyl](https://nanoporetech.github.io/modkit) format proposed by Oxford Nanopre Technologies, aims to formalize the representation of RNA modifications. 
-This format is compatible with the BED (Browser Extensible Data) format, and most of the specifications are directly derived from the offical 
+The bedRMod format formalizes the [ENCODE bedMethyl](https://www.encodeproject.org/data-standards/wgbs) format to represent RNA modifications. It is compatible with the BED (Browser Extensible Data) format, and most of the specifications are directly derived from the offical 
 BED specifications, available under the [SAM/BAM and related specifications](http://samtools.github.io/hts-specs).
 
 This repository provides the official specifications for the header and data sections of the bedRMod format. It is structured as the 
@@ -17,7 +14,7 @@ contact them directly.
 Discrete genomic feature data files
 -----------------------------------
 
-**[bedRModv1.8.tex]** is the official specification for the bedRMod format.
+**[bedRModv2.tex]** is the official specification for the bedRMod format.
 
 
-[bedRModv1.8.tex]:    https://dieterich-lab.github.io/euf-specs/bedRModv1.8.pdf
+[bedRModv2.tex]:    https://dieterich-lab.github.io/euf-specs/bedRModv2.pdf

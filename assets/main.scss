@@ -1,0 +1,47 @@
+---
+---
+
+@import "minima";
+
+/* overrides below */
+
+
+/*
+h1 {
+  color: darkblue;
+}*/
+
+/* page content width */
+
+/* make content area wider by adjusting the wrapper max-width */
+.wrapper {
+  max-width: 75rem !important; /* larger than default */
+  padding-left: 1rem !important;  /* control side padding */
+  padding-right: 1rem !important;
+}
+
+/* adjust narrow inner margins */
+main {
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+/* footer */
+
+/* less vertical padding to make it thinner */
+.site-footer {
+  // padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  font-size: 0.9rem; /* slightly smaller text */
+}
+
+/* remove footer title */
+.footer-heading {
+  display: none !important;
+}
+
+/* hide left footer text */
+.footer-col-1 {
+  display: none !important;
+}
+
